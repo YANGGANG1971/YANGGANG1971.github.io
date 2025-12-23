@@ -1,0 +1,39 @@
+/* static/css/custom.css */
+
+/* 1. 基础状态：默认红色，无背景 */
+body .navigation .navigation-list .navigation-item a {
+    color: #8C1515 !important;
+    background: transparent !important; /* 强制背景透明 */
+    background-color: transparent !important;
+    text-decoration: none !important;
+    padding-bottom: 8px !important;
+    border-bottom: 4px solid transparent !important; 
+    transition: color 0.2s ease;
+}
+
+/* 2. 悬停状态：变黑，无背景 */
+body .navigation .navigation-list .navigation-item a:hover {
+    color: #000000 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* 3. 激活/选中/点击瞬间：变黑 + 黑色粗横线 + 强制去背景 */
+body .navigation .navigation-list .navigation-item a.active,
+body .navigation .navigation-list .navigation-item a:focus,
+body .navigation .navigation-list .navigation-item a:active {
+    color: #000000 !important;
+    font-weight: bold !important;
+    border-bottom: 4px solid #000000 !important;
+    
+    /* 核心修复：去除黑色方块背景 */
+    background: transparent !important;
+    background-color: transparent !important;
+    outline: none !important; /* 去除点击时的虚线框 */
+    box-shadow: none !important;
+}
+
+/* 4. 防止点击后变蓝 */
+body .navigation .navigation-list .navigation-item a:visited {
+    color: #8C1515 !important;
+}
