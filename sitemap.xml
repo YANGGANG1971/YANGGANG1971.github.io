@@ -2,18 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:58552/home/</loc>
+    <loc>http://localhost:1313/home/</loc>
   </url><url>
-    <loc>http://localhost:58552/open-source/</loc>
+    <loc>http://localhost:1313/open-source/</loc>
   </url><url>
-    <loc>http://localhost:58552/people/</loc>
+    <loc>http://localhost:1313/people/</loc>
   </url><url>
-    <loc>http://localhost:58552/publications/</loc>
+    <loc>http://localhost:1313/publications/</loc>
   </url><url>
-    <loc>http://localhost:58552/categories/</loc>
+    <loc>http://localhost:1313/categories/</loc>
   </url><url>
-    <loc>http://localhost:58552/tags/</loc>
+    <loc>http://localhost:1313/tags/</loc>
   </url><url>
-    <loc>http://localhost:58552/</loc>
+    <loc>http://localhost:1313/</loc>
   </url>
 </urlset>
