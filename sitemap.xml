@@ -10,6 +10,8 @@
   </url><url>
     <loc>http://localhost:1313/publications/</loc>
   </url><url>
+    <loc>http://localhost:1313/yanggang-feng/</loc>
+  </url><url>
     <loc>http://localhost:1313/categories/</loc>
   </url><url>
     <loc>http://localhost:1313/tags/</loc>
