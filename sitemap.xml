@@ -4,6 +4,8 @@
   <url>
     <loc>http://localhost:1313/</loc>
   </url><url>
+    <loc>http://localhost:1313/home-pre/</loc>
+  </url><url>
     <loc>http://localhost:1313/home/</loc>
   </url><url>
     <loc>http://localhost:1313/open-source/</loc>
