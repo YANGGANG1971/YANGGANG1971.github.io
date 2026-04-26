@@ -8,6 +8,8 @@
   </url><url>
     <loc>http://localhost:1313/home/</loc>
   </url><url>
+    <loc>http://localhost:1313/news/</loc>
+  </url><url>
     <loc>http://localhost:1313/open-source/</loc>
   </url><url>
     <loc>http://localhost:1313/people/</loc>
