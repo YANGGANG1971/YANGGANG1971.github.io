@@ -240,6 +240,42 @@
       opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 9999;
     }
     #toast.show { opacity: 1; }
+
+    /* ── Drag & Drop ── */
+    .card { cursor: grab; }
+    .card.dragging { opacity: 0.35; transform: none !important; box-shadow: var(--shadow) !important; }
+    .card-placeholder {
+      border: 2px dashed var(--primary);
+      border-radius: var(--radius);
+      background: rgba(140,21,21,0.04);
+      min-height: 90px;
+    }
+    .cards.drag-active {
+      outline: 2px dashed rgba(140,21,21,0.3);
+      outline-offset: 3px;
+      border-radius: var(--radius);
+      min-height: 90px;
+    }
+    .cat-drag-handle {
+      cursor: grab;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 0 4px 0 0;
+      user-select: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .cat-header:hover .cat-drag-handle { opacity: 0.5; }
+    .cat-drag-handle:hover { opacity: 1 !important; color: var(--primary); }
+    .cat-section.cat-dragging { opacity: 0.4; }
+    .cat-placeholder {
+      border: 2px dashed var(--primary);
+      border-radius: var(--radius);
+      height: 64px;
+      background: rgba(140,21,21,0.04);
+      margin-bottom: 36px;
+    }
   </style>
 </head>
 <body>
@@ -335,6 +371,7 @@ const DEFAULT_BOOKMARKS = [
 let config = null;   // { token, gistId }
 let state  = null;   // { categories, bookmarks }
 let saving = false;
+let dnd    = { card: null, cat: null };
 
 // ── Init ───────────────────────────────────────────────────────────────
 (async function init() {
@@ -605,6 +642,7 @@ function render() {
     sec.className = 'cat-section';
     sec.innerHTML = `
       <div class="cat-header" id="cat-hdr-${esc(cat.replace(/\W/g,'_'))}">
+        <span class="cat-drag-handle" title="拖拽排序">⠿</span>
         <span class="cat-title">${esc(cat)}</span>
         <span class="cat-count">${items.length}</span>
         <div class="cat-actions">
@@ -620,6 +658,8 @@ function render() {
     } else {
       items.forEach(b => cardsEl.appendChild(buildCard(b)));
     }
+    initCardsDropZone(cardsEl, cat);
+    initCatDrag(sec, cat);
     container.appendChild(sec);
   });
 
@@ -638,6 +678,7 @@ function render() {
 function buildCard(b) {
   const card = document.createElement('div');
   card.className = 'card';
+  card.draggable = true;
   const fav = faviconUrl(b.url);
   card.innerHTML = `
     <div class="card-top">
@@ -646,11 +687,174 @@ function buildCard(b) {
     </div>
     ${b.desc ? `<p class="card-desc">${esc(b.desc)}</p>` : ''}
     <div class="card-bottom">
-      <a class="btn-open" href="${esc(b.url)}" target="_blank" rel="noopener">Open →</a>
-      <button class="btn-del" onclick="deleteBookmark('${esc(b.id)}')" title="Remove">✕</button>
+      <a class="btn-open" href="${esc(b.url)}" target="_blank" rel="noopener" draggable="false">Open →</a>
+      <button class="btn-del" onclick="deleteBookmark('${esc(b.id)}')" title="Remove" draggable="false">✕</button>
     </div>
   `;
+  card.addEventListener('dragstart', e => {
+    dnd.card = b.id;
+    dnd.cat  = null;
+    e.dataTransfer.effectAllowed = 'move';
+    e.stopPropagation();
+    setTimeout(() => card.classList.add('dragging'), 0);
+  });
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    dnd.card = null;
+    cleanupDrag();
+  });
   return card;
+}
+
+// ── Drag & Drop ────────────────────────────────────────────────────────
+function initCatDrag(section, catName) {
+  const handle = section.querySelector('.cat-drag-handle');
+  if (!handle) return;
+  handle.draggable = true;
+  handle.addEventListener('dragstart', e => {
+    dnd.cat  = catName;
+    dnd.card = null;
+    e.dataTransfer.effectAllowed = 'move';
+    e.stopPropagation();
+    try {
+      const rect = section.getBoundingClientRect();
+      e.dataTransfer.setDragImage(section, e.clientX - rect.left, 20);
+    } catch {}
+    setTimeout(() => section.classList.add('cat-dragging'), 0);
+  });
+  handle.addEventListener('dragend', () => {
+    section.classList.remove('cat-dragging');
+    dnd.cat = null;
+    cleanupDrag();
+  });
+}
+
+function initCardsDropZone(cardsEl, catName) {
+  cardsEl.addEventListener('dragover', e => {
+    if (dnd.card == null) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    cardsEl.classList.add('drag-active');
+    const ph = getCardPlaceholder();
+    const after = getAfterElement(cardsEl, e.clientX, e.clientY);
+    if (after) cardsEl.insertBefore(ph, after);
+    else cardsEl.appendChild(ph);
+  });
+  cardsEl.addEventListener('dragleave', e => {
+    if (!cardsEl.contains(e.relatedTarget)) {
+      cardsEl.classList.remove('drag-active');
+    }
+  });
+  cardsEl.addEventListener('drop', e => {
+    if (dnd.card == null) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const ph = document.querySelector('.card-placeholder');
+    const siblings = [...cardsEl.children];
+    const phIdx = ph && ph.parentElement === cardsEl ? siblings.indexOf(ph) : siblings.length;
+    const dropIdx = siblings.slice(0, phIdx).filter(
+      el => el.classList.contains('card') && !el.classList.contains('dragging')
+    ).length;
+    moveCard(dnd.card, catName, dropIdx);
+  });
+}
+
+function initContainerDnD() {
+  const container = document.getElementById('bookmark-container');
+  container.addEventListener('dragover', e => {
+    if (dnd.cat == null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const ph = getCatPlaceholder();
+    const sections = [...container.children].filter(el =>
+      el.classList.contains('cat-section') &&
+      !el.classList.contains('cat-dragging') &&
+      !el.classList.contains('cat-placeholder')
+    );
+    let insertBefore = null;
+    for (const sec of sections) {
+      const rect = sec.getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) { insertBefore = sec; break; }
+    }
+    if (insertBefore) container.insertBefore(ph, insertBefore);
+    else container.appendChild(ph);
+  });
+  container.addEventListener('dragleave', e => {
+    if (dnd.cat == null) return;
+    if (!container.contains(e.relatedTarget)) {
+      document.querySelector('.cat-placeholder')?.remove();
+    }
+  });
+  container.addEventListener('drop', e => {
+    if (dnd.cat == null) return;
+    const ph = document.querySelector('.cat-placeholder');
+    if (!ph) return;
+    e.preventDefault();
+    const children = [...container.children];
+    const phIdx = children.indexOf(ph);
+    const beforePh = children.slice(0, phIdx).filter(el =>
+      el.classList.contains('cat-section') && !el.classList.contains('cat-dragging')
+    );
+    const dropIdx = beforePh.length;
+    const draggedName = dnd.cat;
+    const cats = state.categories.filter(c => c !== draggedName);
+    cats.splice(dropIdx, 0, draggedName);
+    state.categories = cats;
+    cleanupDrag();
+    render();
+    gistSave();
+  });
+}
+
+function moveCard(id, toCat, dropIdx) {
+  const bm = state.bookmarks.find(b => b.id === id);
+  if (!bm) return;
+  state.bookmarks = state.bookmarks.filter(b => b.id !== id);
+  bm.category = toCat;
+  const catBms = state.bookmarks.map((b, i) => ({ b, i })).filter(x => x.b.category === toCat);
+  let insertAt;
+  if (dropIdx >= catBms.length) {
+    insertAt = catBms.length > 0 ? catBms[catBms.length - 1].i + 1 : state.bookmarks.length;
+  } else {
+    insertAt = catBms[dropIdx].i;
+  }
+  state.bookmarks.splice(insertAt, 0, bm);
+  cleanupDrag();
+  render();
+  gistSave();
+}
+
+function getCardPlaceholder() {
+  let ph = document.querySelector('.card-placeholder');
+  if (!ph) { ph = document.createElement('div'); ph.className = 'card-placeholder'; }
+  return ph;
+}
+
+function getCatPlaceholder() {
+  let ph = document.querySelector('.cat-placeholder');
+  if (!ph) { ph = document.createElement('div'); ph.className = 'cat-placeholder'; }
+  return ph;
+}
+
+function getAfterElement(container, x, y) {
+  const cards = [...container.querySelectorAll('.card:not(.dragging):not(.card-placeholder)')];
+  return cards.reduce((closest, el) => {
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const inSameRow = Math.abs(y - cy) < r.height / 2;
+    const isBefore = inSameRow ? x < cx : y < cy;
+    if (isBefore) {
+      const dist = Math.hypot(x - cx, y - cy);
+      if (dist < closest.dist) return { dist, el };
+    }
+    return closest;
+  }, { dist: Infinity, el: null }).el;
+}
+
+function cleanupDrag() {
+  document.querySelectorAll('.card-placeholder, .cat-placeholder').forEach(el => el.remove());
+  document.querySelectorAll('.drag-active').forEach(el => el.classList.remove('drag-active'));
 }
 
 // ── Utilities ──────────────────────────────────────────────────────────
@@ -690,6 +894,8 @@ function toast(msg) {
 document.addEventListener('keydown', e => {
   if (e.key === 'a' && !['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) toggleForm();
 });
+
+initContainerDnD();
 </script>
 </body>
 </html>
