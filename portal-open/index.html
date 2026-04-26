@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Portal</title>
+  <style>
+    :root {
+      --primary: #8C1515;
+      --bg: #f5f5f5;
+      --card-bg: #ffffff;
+      --text: #2e2d29;
+      --text-muted: #777;
+      --border: #e0e0e0;
+      --shadow: 0 2px 8px rgba(0,0,0,0.07);
+      --radius: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a;
+        --card-bg: #242424;
+        --text: #e0e0e0;
+        --text-muted: #999;
+        --border: #363636;
+        --shadow: 0 2px 10px rgba(0,0,0,0.35);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Source Sans Pro','Helvetica Neue',Arial,sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.3px; }
+    .sync-status { font-size: 0.78rem; color: rgba(255,255,255,0.85); }
+
+    /* ── Loading ── */
+    #loading {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 8000; flex-direction: column; gap: 14px;
+    }
+    #loading.hidden { display: none; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { font-size: 0.9rem; color: var(--text-muted); }
+
+    /* ── Main ── */
+    .main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.3; }
+    .empty-state h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; }
+    .empty-state p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+    .empty-state a { color: var(--primary); }
+
+    /* ── Category sections ── */
+    .cat-section { margin-bottom: 36px; }
+    .cat-header {
+      display: flex; align-items: center; gap: 10px;
+      border-left: 4px solid var(--primary);
+      padding-left: 12px; margin-bottom: 16px;
+    }
+    .cat-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    .cat-count {
+      font-size: 0.73rem; color: var(--text-muted);
+      background: var(--border); padding: 2px 8px; border-radius: 10px;
+    }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+
+    /* ── Read-only cards (entire card is a link) ── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 13px 15px;
+      display: flex; flex-direction: column; gap: 7px;
+      text-decoration: none; color: inherit;
+      transition: box-shadow 0.15s, transform 0.12s;
+    }
+    .card:hover {
+      box-shadow: 0 5px 18px rgba(140,21,21,0.13);
+      transform: translateY(-2px);
+    }
+    .card-top { display: flex; align-items: flex-start; gap: 9px; }
+    .favicon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; border-radius: 3px; }
+    .card-title { font-size: 0.92rem; font-weight: 600; line-height: 1.3; flex: 1; }
+    .card-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+    .card-hostname {
+      font-size: 0.72rem; color: var(--primary);
+      opacity: 0.55; margin-top: auto;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: opacity 0.12s;
+    }
+    .card:hover .card-hostname { opacity: 0.9; }
+    .empty-note { font-size: 0.83rem; color: var(--text-muted); font-style: italic; }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p>加载中…</p>
+</div>
+
+<!-- Header -->
+<header>
+  <h1>Portal</h1>
+  <span class="sync-status" id="sync-status"></span>
+</header>
+
+<!-- Main -->
+<div class="main" id="main" style="display:none">
+  <div id="bookmark-container"></div>
+</div>
+
+<!-- Not configured -->
+<div class="main empty-state" id="empty-state" style="display:none">
+  <div class="icon">🔖</div>
+  <h2>尚未配置 Portal</h2>
+  <p>
+    请先在 <a href="/portal/">Portal 管理页</a> 完成 GitHub Gist 配置，<br>
+    配置完成后刷新此页面即可查看。
+  </p>
+</div>
+
+<script>
+const CONFIG_KEY = 'portal_github_config';
+const CACHE_KEY  = 'portal_data_cache';
+const GIST_FILE  = 'portal-data.json';
+
+(async function init() {
+  const rawConfig = localStorage.getItem(CONFIG_KEY);
+  const rawCache  = localStorage.getItem(CACHE_KEY);
+
+  // If there's cached data, show it immediately (no flicker)
+  if (rawCache) {
+    renderData(JSON.parse(rawCache));
+    show('main');
+    hide('loading');
+  }
+
+  // If configured, try to fetch fresh data from Gist
+  if (rawConfig) {
+    const config = JSON.parse(rawConfig);
+    if (!rawCache) {
+      // Nothing to show yet — keep the loading spinner
+    }
+    try {
+      const data = await fetchGist(config);
+      localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      renderData(data);
+      show('main');
+      hide('loading');
+      setSyncStatus('已同步');
+    } catch {
+      if (rawCache) {
+        setSyncStatus('离线（显示缓存）', true);
+      } else {
+        hide('loading');
+        show('empty-state');
+      }
+    }
+  } else if (!rawCache) {
+    hide('loading');
+    show('empty-state');
+  }
+})();
+
+async function fetchGist(config) {
+  const res = await fetch(`https://api.github.com/gists/${config.gistId}`, {
+    headers: {
+      'Authorization': `Bearer ${config.token}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    }
+  });
+  if (!res.ok) throw new Error(res.status);
+  const gist = await res.json();
+  const content = gist.files[GIST_FILE]?.content;
+  if (!content) throw new Error('file missing');
+  return JSON.parse(content);
+}
+
+function renderData(state) {
+  const container = document.getElementById('bookmark-container');
+  container.innerHTML = '';
+
+  state.categories.forEach(cat => {
+    const items = state.bookmarks.filter(b => b.category === cat);
+    const sec = document.createElement('div');
+    sec.className = 'cat-section';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'cat-header';
+    hdr.innerHTML = `<span class="cat-title">${esc(cat)}</span><span class="cat-count">${items.length}</span>`;
+    sec.appendChild(hdr);
+
+    const cardsEl = document.createElement('div');
+    cardsEl.className = 'cards';
+    if (items.length === 0) {
+      cardsEl.innerHTML = '<p class="empty-note">暂无书签。</p>';
+    } else {
+      items.forEach(b => cardsEl.appendChild(buildCard(b)));
+    }
+    sec.appendChild(cardsEl);
+    container.appendChild(sec);
+  });
+
+  // Orphaned bookmarks (category deleted but bookmarks remain)
+  const known = new Set(state.categories);
+  const orphans = state.bookmarks.filter(b => !known.has(b.category));
+  if (orphans.length) {
+    const sec = document.createElement('div');
+    sec.className = 'cat-section';
+    sec.innerHTML = `<div class="cat-header"><span class="cat-title">未分类</span><span class="cat-count">${orphans.length}</span></div><div class="cards"></div>`;
+    orphans.forEach(b => sec.querySelector('.cards').appendChild(buildCard(b)));
+    container.appendChild(sec);
+  }
+}
+
+function buildCard(b) {
+  const card = document.createElement('a');
+  card.className = 'card';
+  card.href = b.url;
+  card.target = '_blank';
+  card.rel = 'noopener';
+
+  let hostname = '';
+  try { hostname = new URL(b.url).hostname.replace(/^www\./, ''); } catch {}
+
+  const fav = faviconUrl(b.url);
+  card.innerHTML = `
+    <div class="card-top">
+      ${fav ? `<img class="favicon" src="${esc(fav)}" alt="" onerror="this.style.display='none'">` : ''}
+      <span class="card-title">${esc(b.title)}</span>
+    </div>
+    ${b.desc ? `<p class="card-desc">${esc(b.desc)}</p>` : ''}
+    <span class="card-hostname">${esc(hostname)}</span>
+  `;
+  return card;
+}
+
+function faviconUrl(url) {
+  try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`; }
+  catch { return ''; }
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function show(id) { document.getElementById(id).style.display = ''; }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function setSyncStatus(msg, warn) {
+  const el = document.getElementById('sync-status');
+  el.textContent = msg;
+  if (warn) el.style.color = '#ffcc88';
+}
+</script>
+</body>
+</html>
