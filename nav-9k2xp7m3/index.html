@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>My Portal</title>
+  <style>
+    :root {
+      --primary: #8C1515;
+      --primary-light: #b01c1c;
+      --bg: #f5f5f5;
+      --card-bg: #ffffff;
+      --text: #2e2d29;
+      --text-muted: #666;
+      --border: #ddd;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --radius: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a1a;
+        --card-bg: #252525;
+        --text: #e8e8e8;
+        --text-muted: #aaa;
+        --border: #3a3a3a;
+        --shadow: 0 2px 8px rgba(0,0,0,0.3);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.5px; }
+    header small { font-size: 0.78rem; opacity: 0.8; }
+    .main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 0; }
+
+    /* Add form */
+    .add-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+    }
+    .add-panel h2 {
+      font-size: 1rem;
+      color: var(--primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .add-panel h2::before { content: '＋'; font-size: 1.1rem; }
+    .add-form { display: none; }
+    .add-form.open { display: block; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 700px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 0.8rem; color: var(--text-muted); }
+    input, select {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 0.9rem;
+      background: var(--bg);
+      color: var(--text);
+      width: 100%;
+    }
+    input:focus, select:focus { outline: 2px solid var(--primary); border-color: transparent; }
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 10px;
+      align-items: end;
+    }
+    @media (max-width: 700px) { .form-row-2 { grid-template-columns: 1fr; } }
+    .btn-add {
+      padding: 8px 22px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.15s;
+      width: 100%;
+    }
+    .btn-add:hover { background: var(--primary-light); }
+
+    /* Category sections */
+    .category-section { margin-bottom: 36px; }
+    .category-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      border-left: 4px solid var(--primary);
+      padding-left: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .category-count {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      background: var(--border);
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: box-shadow 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(140,21,21,0.12); transform: translateY(-2px); }
+    .card-header { display: flex; align-items: flex-start; gap: 10px; }
+    .favicon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      border-radius: 3px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+      flex: 1;
+    }
+    .card-link {
+      font-size: 0.78rem;
+      color: var(--primary);
+      text-decoration: none;
+      word-break: break-all;
+      display: block;
+      margin-top: 2px;
+    }
+    .card-link:hover { text-decoration: underline; }
+    .card-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    .btn-visit {
+      font-size: 0.78rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-visit:hover { background: var(--primary-light); }
+    .btn-delete {
+      font-size: 0.78rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .btn-delete:hover { color: #c00; background: rgba(200,0,0,0.07); }
+    .empty-cat {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-style: italic;
+      padding: 8px 0;
+    }
+
+    /* Category management */
+    .cat-mgr { margin-bottom: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .cat-chip {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      background: var(--border);
+      color: var(--text-muted);
+      border: none;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .cat-chip:hover { background: var(--primary); color: #fff; }
+    .cat-chip.add-cat { background: transparent; border: 1px dashed var(--primary); color: var(--primary); }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #333;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 9999;
+    }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>My Portal</h1>
+    <small>Private quick-access dashboard</small>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- Add bookmark panel -->
+  <div class="add-panel">
+    <h2 id="toggle-form-btn" onclick="toggleForm()">Add Bookmark</h2>
+    <div class="add-form" id="add-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" id="inp-title" placeholder="e.g. Gitee Skill Sharing">
+        </div>
+        <div class="form-group">
+          <label>URL *</label>
+          <input type="url" id="inp-url" placeholder="https://">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="inp-cat"></select>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Description (optional)</label>
+          <input type="text" id="inp-desc" placeholder="Short note...">
+        </div>
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <button class="btn-add" onclick="addBookmark()">Add</button>
+        </div>
+      </div>
+      <div style="margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">New category:</span>
+        <input type="text" id="inp-new-cat" placeholder="Category name" style="width:160px;">
+        <button class="btn-add" style="width:auto; padding:7px 16px;" onclick="addCategory()">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmark sections rendered here -->
+  <div id="bookmark-container"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const STORAGE_KEY = 'portal_bookmarks_v2';
+  const CAT_KEY = 'portal_categories_v2';
+
+  const DEFAULT_CATS = ['Robotics / Open Source', 'Academic Journals', 'Research Tools', 'Other'];
+
+  const DEFAULT_BOOKMARKS = [
+    {
+      id: 'b1', title: 'Gitee · Skill Sharing',
+      url: 'https://gitee.com/openrobotics/skill-sharing',
+      category: 'Robotics / Open Source',
+      desc: 'OpenRobotics skill sharing repo on Gitee'
+    },
+    {
+      id: 'b2', title: 'Nature',
+      url: 'https://www.nature.com',
+      category: 'Academic Journals',
+      desc: 'Nature journal — multidisciplinary science'
+    },
+    {
+      id: 'b3', title: 'Science',
+      url: 'https://www.science.org',
+      category: 'Academic Journals',
+      desc: 'Science magazine — AAAS'
+    },
+    {
+      id: 'b4', title: 'ResearchSquare',
+      url: 'https://www.researchsquare.com',
+      category: 'Research Tools',
+      desc: 'Preprint server & peer review platform'
+    },
+    {
+      id: 'b5', title: 'Google Scholar',
+      url: 'https://scholar.google.com',
+      category: 'Research Tools',
+      desc: 'Search academic papers and citations'
+    },
+    {
+      id: 'b6', title: 'IEEE Xplore',
+      url: 'https://ieeexplore.ieee.org',
+      category: 'Academic Journals',
+      desc: 'IEEE digital library — robotics & engineering'
+    },
+  ];
+
+  function loadCategories() {
+    const raw = localStorage.getItem(CAT_KEY);
+    return raw ? JSON.parse(raw) : [...DEFAULT_CATS];
+  }
+
+  function saveCategories(cats) {
+    localStorage.setItem(CAT_KEY, JSON.stringify(cats));
+  }
+
+  function loadBookmarks() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+    saveBookmarks(DEFAULT_BOOKMARKS);
+    return [...DEFAULT_BOOKMARKS];
+  }
+
+  function saveBookmarks(bookmarks) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks));
+  }
+
+  function getFavicon(url) {
+    try {
+      const domain = new URL(url).origin;
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    } catch { return ''; }
+  }
+
+  function uid() {
+    return 'b' + Date.now() + Math.random().toString(36).slice(2, 6);
+  }
+
+  function toggleForm() {
+    const f = document.getElementById('add-form');
+    f.classList.toggle('open');
+  }
+
+  function populateCategorySelect() {
+    const sel = document.getElementById('inp-cat');
+    const cats = loadCategories();
+    sel.innerHTML = cats.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+  }
+
+  function addCategory() {
+    const inp = document.getElementById('inp-new-cat');
+    const name = inp.value.trim();
+    if (!name) return;
+    const cats = loadCategories();
+    if (cats.includes(name)) { toast('Category already exists'); return; }
+    cats.push(name);
+    saveCategories(cats);
+    inp.value = '';
+    populateCategorySelect();
+    render();
+    toast('Category created: ' + name);
+  }
+
+  function addBookmark() {
+    const title = document.getElementById('inp-title').value.trim();
+    const url = document.getElementById('inp-url').value.trim();
+    const cat = document.getElementById('inp-cat').value;
+    const desc = document.getElementById('inp-desc').value.trim();
+    if (!title || !url) { toast('Title and URL are required'); return; }
+    try { new URL(url); } catch { toast('Invalid URL'); return; }
+    const bookmarks = loadBookmarks();
+    bookmarks.push({ id: uid(), title, url, category: cat, desc });
+    saveBookmarks(bookmarks);
+    document.getElementById('inp-title').value = '';
+    document.getElementById('inp-url').value = '';
+    document.getElementById('inp-desc').value = '';
+    render();
+    toast('Bookmark added');
+  }
+
+  function deleteBookmark(id) {
+    const bookmarks = loadBookmarks().filter(b => b.id !== id);
+    saveBookmarks(bookmarks);
+    render();
+    toast('Removed');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function render() {
+    const cats = loadCategories();
+    const bookmarks = loadBookmarks();
+    populateCategorySelect();
+
+    const container = document.getElementById('bookmark-container');
+    container.innerHTML = '';
+
+    cats.forEach(cat => {
+      const items = bookmarks.filter(b => b.category === cat);
+      const sec = document.createElement('div');
+      sec.className = 'category-section';
+      sec.innerHTML = `
+        <div class="category-title">
+          ${escHtml(cat)}
+          <span class="category-count">${items.length}</span>
+        </div>
+        <div class="cards" id="cards-${escHtml(cat.replace(/\s/g,'_'))}">
+          ${items.length === 0 ? '<p class="empty-cat">No bookmarks yet.</p>' : ''}
+        </div>
+      `;
+      container.appendChild(sec);
+
+      const cardsEl = sec.querySelector('.cards');
+      items.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const fav = getFavicon(b.url);
+        card.innerHTML = `
+          <div class="card-header">
+            ${fav ? `<img class="favicon" src="${escHtml(fav)}" alt="" onerror="this.style.display='none'">` : ''}
+            <span class="card-title">${escHtml(b.title)}</span>
+          </div>
+          ${b.desc ? `<p class="card-desc">${escHtml(b.desc)}</p>` : ''}
+          <div class="card-footer">
+            <a class="btn-visit" href="${escHtml(b.url)}" target="_blank" rel="noopener">Open →</a>
+            <button class="btn-delete" onclick="deleteBookmark('${escHtml(b.id)}')" title="Remove">✕</button>
+          </div>
+        `;
+        cardsEl.appendChild(card);
+      });
+    });
+
+    // Uncategorized
+    const knownCats = new Set(cats);
+    const orphans = bookmarks.filter(b => !knownCats.has(b.category));
+    if (orphans.length > 0) {
+      const sec = document.createElement('div');
+      sec.className = 'category-section';
+      sec.innerHTML = `<div class="category-title">Uncategorized <span class="category-count">${orphans.length}</span></div><div class="cards"></div>`;
+      const cardsEl = sec.querySelector('.cards');
+      orphans.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const fav = getFavicon(b.url);
+        card.innerHTML = `
+          <div class="card-header">
+            ${fav ? `<img class="favicon" src="${escHtml(fav)}" alt="" onerror="this.style.display='none'">` : ''}
+            <span class="card-title">${escHtml(b.title)}</span>
+          </div>
+          ${b.desc ? `<p class="card-desc">${escHtml(b.desc)}</p>` : ''}
+          <div class="card-footer">
+            <a class="btn-visit" href="${escHtml(b.url)}" target="_blank" rel="noopener">Open →</a>
+            <button class="btn-delete" onclick="deleteBookmark('${escHtml(b.id)}')" title="Remove">✕</button>
+          </div>
+        `;
+        cardsEl.appendChild(card);
+      });
+      container.appendChild(sec);
+    }
+  }
+
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  // Keyboard shortcut: press 'a' to toggle add form
+  document.addEventListener('keydown', e => {
+    if (e.key === 'a' && !['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) {
+      toggleForm();
+    }
+  });
+
+  render();
+</script>
+</body>
+</html>
