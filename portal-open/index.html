@@ -172,7 +172,7 @@ const GIST_FILE  = 'portal-data.json';
       renderData(data);
       show('main');
       hide('loading');
-      setSyncStatus('已同步');
+      setSyncStatus('Synced');
     } catch {
       if (rawCache) {
         setSyncStatus('离线（显示缓存）', true);
