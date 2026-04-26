@@ -185,6 +185,26 @@
       font-size: 0.73rem; color: var(--text-muted);
       background: var(--border); padding: 2px 8px; border-radius: 10px;
     }
+    .cat-actions { display: flex; gap: 4px; margin-left: 4px; opacity: 0; transition: opacity 0.15s; }
+    .cat-header:hover .cat-actions { opacity: 1; }
+    .cat-btn {
+      background: none; border: 1px solid var(--border); color: var(--text-muted);
+      border-radius: 4px; padding: 2px 7px; cursor: pointer; font-size: 0.75rem;
+      transition: background 0.12s, color 0.12s;
+    }
+    .cat-btn:hover { background: var(--border); color: var(--text); }
+    .cat-btn.del:hover { border-color: #c00; color: #c00; background: rgba(200,0,0,0.06); }
+    .cat-rename-wrap { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .cat-rename-input {
+      font-size: 1.05rem; font-weight: 700; color: var(--primary);
+      border: none; border-bottom: 2px solid var(--primary); background: transparent;
+      outline: none; padding: 0 4px; min-width: 60px; width: auto; max-width: 300px;
+    }
+    .cat-rename-ok, .cat-rename-cancel {
+      background: none; border: none; cursor: pointer; font-size: 0.82rem; padding: 2px 6px; border-radius: 4px;
+    }
+    .cat-rename-ok { color: #1a7a1a; } .cat-rename-ok:hover { background: rgba(26,122,26,0.08); }
+    .cat-rename-cancel { color: #888; } .cat-rename-cancel:hover { background: var(--border); }
     .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
     .card {
       background: var(--card-bg); border: 1px solid var(--border);
@@ -515,6 +535,60 @@ function deleteBookmark(id) {
   toast('Removed');
 }
 
+function startRenameCategory(oldName) {
+  const hdrId = 'cat-hdr-' + oldName.replace(/\W/g,'_');
+  const hdr = document.getElementById(hdrId);
+  if (!hdr) return;
+  const titleEl = hdr.querySelector('.cat-title');
+  const countEl = hdr.querySelector('.cat-count');
+  const actEl   = hdr.querySelector('.cat-actions');
+  titleEl.style.display = 'none';
+  countEl.style.display = 'none';
+  actEl.style.display   = 'none';
+  const wrap = document.createElement('div');
+  wrap.className = 'cat-rename-wrap';
+  wrap.innerHTML = `
+    <input class="cat-rename-input" id="rename-inp" value="${esc(oldName)}" size="${oldName.length + 2}">
+    <button class="cat-rename-ok" onclick="commitRename('${esc(oldName)}')">✓</button>
+    <button class="cat-rename-cancel" onclick="render()">✕</button>
+  `;
+  hdr.appendChild(wrap);
+  const inp = wrap.querySelector('#rename-inp');
+  inp.focus(); inp.select();
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') commitRename(oldName);
+    if (e.key === 'Escape') render();
+  });
+}
+
+function commitRename(oldName) {
+  const inp = document.getElementById('rename-inp');
+  if (!inp) return;
+  const newName = inp.value.trim();
+  if (!newName) { toast('Name cannot be empty'); return; }
+  if (newName === oldName) { render(); return; }
+  if (state.categories.includes(newName)) { toast('Name already exists'); return; }
+  state.categories = state.categories.map(c => c === oldName ? newName : c);
+  state.bookmarks  = state.bookmarks.map(b => b.category === oldName ? { ...b, category: newName } : b);
+  render(); gistSave();
+  toast(`Renamed to "${newName}"`);
+}
+
+function deleteCategory(name) {
+  const count = state.bookmarks.filter(b => b.category === name).length;
+  const msg = count > 0
+    ? `Delete category "${name}"?\n${count} bookmark(s) will be moved to "Other".`
+    : `Delete category "${name}"?`;
+  if (!confirm(msg)) return;
+  state.categories = state.categories.filter(c => c !== name);
+  if (count > 0) {
+    if (!state.categories.includes('Other')) state.categories.push('Other');
+    state.bookmarks = state.bookmarks.map(b => b.category === name ? { ...b, category: 'Other' } : b);
+  }
+  render(); gistSave();
+  toast(`Category "${name}" deleted`);
+}
+
 // ── Render ─────────────────────────────────────────────────────────────
 function render() {
   if (!state) return;
@@ -530,9 +604,13 @@ function render() {
     const sec = document.createElement('div');
     sec.className = 'cat-section';
     sec.innerHTML = `
-      <div class="cat-header">
+      <div class="cat-header" id="cat-hdr-${esc(cat.replace(/\W/g,'_'))}">
         <span class="cat-title">${esc(cat)}</span>
         <span class="cat-count">${items.length}</span>
+        <div class="cat-actions">
+          <button class="cat-btn" onclick="startRenameCategory('${esc(cat)}')">✎ Rename</button>
+          <button class="cat-btn del" onclick="deleteCategory('${esc(cat)}')">✕ Delete</button>
+        </div>
       </div>
       <div class="cards"></div>
     `;
