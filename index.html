@@ -234,9 +234,9 @@
 
   
   Promise.all([
-    gcGet('/api/v0/stats/hits?start=' + today    + '&end=' + today),
-    gcGet('/api/v0/stats/hits?start=' + dateStr(d30)  + '&end=' + today),
-    gcGet('/api/v0/stats/hits?start=' + dateStr(d365) + '&end=' + today),
+    gcGet('/api/v0/stats/hits?start=' + today    + '&end=' + today,    GC_TOKEN),
+    gcGet('/api/v0/stats/hits?start=' + dateStr(d30)  + '&end=' + today, GC_TOKEN),
+    gcGet('/api/v0/stats/hits?start=' + dateStr(d365) + '&end=' + today, GC_TOKEN),
   ]).then(function (res) {
     var ids = ['vc-day', 'vc-month', 'vc-year'];
     res.forEach(function (data, i) {
@@ -249,15 +249,25 @@
   var GC_TOKEN = '3y2rs63ptbwu1ipn6gg3xg9yxf99sy2j1ct5s1yexbyve6c0e9';
 
   var originsEl = document.getElementById('origins-section');
-  if (!originsEl || !GC_TOKEN) return;
+  if (!originsEl) return;
 
   function loadCountries() {
-    gcGet('/api/v0/stats/countries?start=' + dateStr(d365) + '&end=' + today, GC_TOKEN)
+    gcGet('/api/v0/stats/locations?start=' + dateStr(d365) + '&end=' + today, GC_TOKEN)
       .then(function (data) {
         var el = document.getElementById('country-list');
         if (!el) return;
         if (!data || !data.stats || !data.stats.length) { el.textContent = '—'; return; }
-        el.innerHTML = data.stats.slice(0, 10).map(function (d, i) {
+        
+        var merged = {};
+        data.stats.forEach(function (d) {
+          var id   = (d.id === 'HK' || d.id === 'TW' || d.id === 'MO') ? 'CN' : d.id;
+          var name = id === 'CN' ? 'China' : d.name;
+          merged[id] = { name: name, count: (merged[id] ? merged[id].count : 0) + d.count };
+        });
+        var top10 = Object.values(merged)
+          .sort(function (a, b) { return b.count - a.count; })
+          .slice(0, 10);
+        el.innerHTML = top10.map(function (d, i) {
           return '<span style="color:#8C1515;font-weight:600;">' + (i + 1) + '.</span> '
             + d.name
             + ' <span style="color:#bbb;font-size:0.75rem;">(' + d.count.toLocaleString() + ')</span>';
