@@ -206,6 +206,10 @@
       <div id="vc-year" style="font-size:1.9rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
       <div style="font-size:0.78rem;color:#aaa;margin-top:5px;letter-spacing:0.5px;">LAST 365 DAYS</div>
     </div>
+    <div style="text-align:center;">
+      <div id="vc-total" style="font-size:1.9rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
+      <div style="font-size:0.78rem;color:#aaa;margin-top:5px;letter-spacing:0.5px;">TOTAL</div>
+    </div>
   </div>
 </div>
 
@@ -219,13 +223,9 @@
   var GC       = 'https://feng.goatcounter.com';
   var GC_TOKEN = '3y2rs63ptbwu1ipn6gg3xg9yxf99sy2j1ct5s1yexbyve6c0e9';
 
-  var now = new Date();
-  var p   = function (n) { return String(n).padStart(2, '0'); };
-  function dateStr(d) { return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
-
-  var today = dateStr(now);
-  var d30   = new Date(now); d30.setDate(d30.getDate() - 30);
-  var d365  = new Date(now); d365.setFullYear(d365.getFullYear() - 1);
+  var now   = new Date();
+  var p     = function (n) { return String(n).padStart(2, '0'); };
+  var today = now.getFullYear() + '-' + p(now.getMonth() + 1) + '-' + p(now.getDate());
 
   function gcGet(path) {
     return fetch(GC + path, { headers: { 'Authorization': 'Bearer ' + GC_TOKEN } })
@@ -235,11 +235,12 @@
 
   
   Promise.all([
-    gcGet('/api/v0/stats/hits?start=' + today         + '&end=' + today),
-    gcGet('/api/v0/stats/hits?start=' + dateStr(d30)  + '&end=' + today),
-    gcGet('/api/v0/stats/hits?start=' + dateStr(d365) + '&end=' + today),
+    gcGet('/api/v0/stats/hits?start=day'),
+    gcGet('/api/v0/stats/hits?start=month'),
+    gcGet('/api/v0/stats/hits?start=year'),
+    gcGet('/api/v0/stats/hits'),
   ]).then(function (res) {
-    ['vc-day', 'vc-month', 'vc-year'].forEach(function (id, i) {
+    ['vc-day', 'vc-month', 'vc-year', 'vc-total'].forEach(function (id, i) {
       var el   = document.getElementById(id);
       var data = res[i];
       if (el) el.textContent = (data && data.total != null) ? data.total.toLocaleString() : '—';
