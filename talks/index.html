@@ -15,36 +15,38 @@
 <meta name="author" content="Yanggang Feng (冯仰刚)">
 <meta name="description" content="
 
-  News
+  Talks
 
   
 
   
+  Invited Talks
+
   
     2026 &#9654;
     
-      
-        May 2026
-        Our paper &#34;Spinal neuromotor rehabilitation using a portable isokinetic training robot&#34; has been accepted by Nature.
-      
     
   
 
   
+
+  
+  Hosted Talks
+
+  
+    2026 &#9654;
+    
+    
+  
+
   
     2025 &#9654;
     
       
-        Mar 2025
-        Our paper &#34;Power-free knee rehabilitation robot for home-based isokinetic training&#34; has been published in Nature Communications. The work was featured by
-        CCTV,
-        NSFC, and
-        Beihang University.
-      
-      
-        Mar 2025
-        Our paper &#34;A wearable isokinetic training robot for enhanced bedside knee rehabilitation&#34; has been published in IEEE Transactions on Robotics, vol. 41, pp. 2460–2476. Coverage:
-        Beihang-SMEA.
+        Nov 14, 2025
+        Bi Zhang (Shenyang Institute of Automation, Chinese Academy of Sciences)
+        &#34;Rehabilitation Robotics&#34;
+        Beihang University, Beijing, China
       
     
   
@@ -55,17 +57,21 @@
 
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:description" content="News 2026 ▶ May 2026 Our paper &#34;Spinal neuromotor rehabilitation using a portable isokinetic training robot&#34; has been accepted by Nature. 2025 ▶ Mar 2025 Our paper &#34;Power-free knee rehabilitation robot for home-based isokinetic training&#34; has been published in Nature Communications. The work was featured by CCTV, NSFC, and Beihang University. Mar 2025 Our paper &#34;A wearable isokinetic training robot for enhanced bedside knee rehabilitation&#34; has been published in IEEE Transactions on Robotics, vol. 41, pp. 2460–2476. Coverage: Beihang-SMEA.">
+  <meta name="twitter:description" content="Talks Invited Talks 2026 ▶ Hosted Talks 2026 ▶ 2025 ▶ Nov 14, 2025 Bi Zhang (Shenyang Institute of Automation, Chinese Academy of Sciences)
+&#34;Rehabilitation Robotics&#34;
+Beihang University, Beijing, China">
 
-<meta property="og:url" content="http://localhost:1313/news/">
-  <meta property="og:description" content="News 2026 ▶ May 2026 Our paper &#34;Spinal neuromotor rehabilitation using a portable isokinetic training robot&#34; has been accepted by Nature. 2025 ▶ Mar 2025 Our paper &#34;Power-free knee rehabilitation robot for home-based isokinetic training&#34; has been published in Nature Communications. The work was featured by CCTV, NSFC, and Beihang University. Mar 2025 Our paper &#34;A wearable isokinetic training robot for enhanced bedside knee rehabilitation&#34; has been published in IEEE Transactions on Robotics, vol. 41, pp. 2460–2476. Coverage: Beihang-SMEA.">
+<meta property="og:url" content="http://localhost:1313/talks/">
+  <meta property="og:description" content="Talks Invited Talks 2026 ▶ Hosted Talks 2026 ▶ 2025 ▶ Nov 14, 2025 Bi Zhang (Shenyang Institute of Automation, Chinese Academy of Sciences)
+&#34;Rehabilitation Robotics&#34;
+Beihang University, Beijing, China">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
 
 
 
 
-<link rel="canonical" href="http://localhost:1313/news/">
+<link rel="canonical" href="http://localhost:1313/talks/">
 
 
 <link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
@@ -188,7 +194,7 @@
   <article>
     <header>
       <h1 class="title">
-        <a class="title-link" href="http://localhost:1313/news/">
+        <a class="title-link" href="http://localhost:1313/talks/">
           
         </a>
       </h1>
@@ -196,11 +202,11 @@
 
     <div style="font-family:'Source Sans Pro','Helvetica Neue',Helvetica,Arial,sans-serif;color:#2e2d29;max-width:100%;">
 
-  <h2 style="font-family:'Georgia',serif;border-left:5px solid #8C1515;padding-left:15px;margin-top:0;margin-bottom:35px;font-size:2.4rem;color:#8C1515;">News</h2>
+  <h2 style="font-family:'Georgia',serif;border-left:5px solid #8C1515;padding-left:15px;margin-top:0;margin-bottom:35px;font-size:2.4rem;color:#8C1515;">Talks</h2>
 
   <style>
-    .news-year { margin-bottom: 20px; }
-    .news-year summary {
+    .talks-year { margin-bottom: 20px; }
+    .talks-year summary {
       list-style: none;
       display: flex;
       align-items: center;
@@ -214,44 +220,76 @@
       padding: 6px 12px;
       margin-bottom: 0;
     }
-    .news-year summary::-webkit-details-marker { display: none; }
-    .news-year summary .toggle-icon {
+    .talks-year summary::-webkit-details-marker { display: none; }
+    .talks-year summary .toggle-icon {
       display: inline-block;
       font-size: 1.2rem;
       transition: transform 0.2s;
       margin-left: auto;
       color: #8C1515;
     }
-    .news-year[open] summary .toggle-icon { transform: rotate(90deg); }
-    .news-year .news-body { margin-top: 12px; }
+    .talks-year[open] summary .toggle-icon { transform: rotate(90deg); }
+    .talks-year .talks-body { margin-top: 12px; }
+
+    .talk-item {
+      margin-bottom: 14px;
+      padding: 16px 20px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border-left: 3px solid #ddd;
+      font-size: 1.4rem;
+      line-height: 1.7;
+    }
+    .talk-tag {
+      display: inline-block;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 2px 10px;
+      border-radius: 3px;
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+    .talk-tag.invited { background: #8C1515; }
+    .talk-tag.host    { background: #4a4a4a; }
+    .talk-venue {
+      font-style: italic;
+      color: #555;
+    }
   </style>
 
-  <!-- 2026: open by default -->
-  <details class="news-year" open>
+  <!-- ═══════════════════════════════════════════════
+       SECTION 1: INVITED TALKS
+  ════════════════════════════════════════════════ -->
+  <h3 style="font-family:'Georgia',serif;font-size:1.8rem;color:#2e2d29;margin:0 0 20px 0;padding-bottom:8px;border-bottom:2px solid rgba(140,21,21,0.2);">Invited Talks</h3>
+
+  <details class="talks-year" open>
     <summary>2026 <span class="toggle-icon">&#9654;</span></summary>
-    <div class="news-body">
-      <div style="margin-bottom:18px;padding:18px 20px;background:#f9f9f9;border-radius:6px;border-left:3px solid #ddd;font-size:1.4rem;line-height:1.7;">
-        <span style="display:inline-block;background:#8C1515;color:#fff;font-size:1.2rem;font-weight:bold;padding:2px 10px;border-radius:3px;margin-right:12px;vertical-align:middle;">May 2026</span>
-        Our paper "Spinal neuromotor rehabilitation using a portable isokinetic training robot" has been accepted by <em>Nature</em>.
-      </div>
+    <div class="talks-body">
     </div>
   </details>
 
-  <!-- 2025: collapsed by default -->
-  <details class="news-year">
+  <div style="height:48px;"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 2: HOSTED / ORGANIZED TALKS
+  ════════════════════════════════════════════════ -->
+  <h3 style="font-family:'Georgia',serif;font-size:1.8rem;color:#2e2d29;margin:0 0 20px 0;padding-bottom:8px;border-bottom:2px solid rgba(140,21,21,0.2);">Hosted Talks</h3>
+
+  <details class="talks-year" open>
+    <summary>2026 <span class="toggle-icon">&#9654;</span></summary>
+    <div class="talks-body">
+    </div>
+  </details>
+
+  <details class="talks-year" open>
     <summary>2025 <span class="toggle-icon">&#9654;</span></summary>
-    <div class="news-body">
-      <div style="margin-bottom:18px;padding:18px 20px;background:#f9f9f9;border-radius:6px;border-left:3px solid #ddd;font-size:1.4rem;line-height:1.7;">
-        <span style="display:inline-block;background:#8C1515;color:#fff;font-size:1.2rem;font-weight:bold;padding:2px 10px;border-radius:3px;margin-right:12px;vertical-align:middle;">Mar 2025</span>
-        Our paper "Power-free knee rehabilitation robot for home-based isokinetic training" has been published in <em>Nature Communications</em>. The work was featured by
-        <a href="https://content-static.cctvnews.cctv.com/snow-book/index.html?item_id=17706521858101621181" target="_blank" style="color:#8C1515;text-decoration:underline;">CCTV</a>,
-        <a href="https://www.nsfc.gov.cn/p1/3381/2825/99522.html" target="_blank" style="color:#8C1515;text-decoration:underline;">NSFC</a>, and
-        <a href="https://news.buaa.edu.cn/info/1005/64843.htm" target="_blank" style="color:#8C1515;text-decoration:underline;">Beihang University</a>.
-      </div>
-      <div style="margin-bottom:18px;padding:18px 20px;background:#f9f9f9;border-radius:6px;border-left:3px solid #ddd;font-size:1.4rem;line-height:1.7;">
-        <span style="display:inline-block;background:#8C1515;color:#fff;font-size:1.2rem;font-weight:bold;padding:2px 10px;border-radius:3px;margin-right:12px;vertical-align:middle;">Mar 2025</span>
-        Our paper "A wearable isokinetic training robot for enhanced bedside knee rehabilitation" has been published in <em>IEEE Transactions on Robotics</em>, vol. 41, pp. 2460–2476. Coverage:
-        <a href="http://www.me.buaa.edu.cn/info/1126/8267.htm" target="_blank" style="color:#8C1515;text-decoration:underline;">Beihang-SMEA</a>.
+    <div class="talks-body">
+      <div class="talk-item">
+        <span class="talk-tag host">Nov 14, 2025</span>
+        <strong>Bi Zhang</strong> (Shenyang Institute of Automation, Chinese Academy of Sciences)<br>
+        <em>"Rehabilitation Robotics"</em><br>
+        <span class="talk-venue">Beihang University, Beijing, China</span>
       </div>
     </div>
   </details>
