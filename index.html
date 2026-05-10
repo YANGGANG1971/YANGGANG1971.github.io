@@ -191,7 +191,7 @@
 
   </div>
 
-  <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(140,21,21,0.18);text-align:center;">
+  <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(140,21,21,0.18);text-align:center;width:100%;">
   <div style="font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:14px;font-family:sans-serif;">Visitor Statistics</div>
   <div style="display:inline-flex;gap:40px;flex-wrap:wrap;justify-content:center;">
     <div style="text-align:center;">
@@ -210,9 +210,9 @@
 </div>
 
 
-<div id="vmap-section" style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(140,21,21,0.1);text-align:center;">
-  <div style="font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:12px;font-family:sans-serif;">Visitor Origins</div>
-  <div id="vmap" style="width:100%;height:500px;"></div>
+<div id="vmap-section" style="margin-top:28px;padding-top:20px;text-align:center;width:100%;">
+  <div style="font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:10px;font-family:sans-serif;">Visitor Origins</div>
+  <div id="country-list" style="font-size:0.82rem;color:#666;line-height:2;font-family:sans-serif;">—</div>
 </div>
 
 <script>
@@ -325,17 +325,15 @@
   }
 
   
-  var mapInited = false;
+  var countriesInited = false;
 
-  function loadMap() {
-    if (mapInited) return;
-    mapInited = true;
+  function loadCountries() {
+    if (countriesInited) return;
+    countriesInited = true;
 
-    
     Promise.all(ALL_CODES.map(function (code) {
       return get('geo-' + code).then(function (n) { return { code: code, n: n }; });
     })).then(function (results) {
-      
       var byName = {};
       results.forEach(function (r) {
         if (!r.n) return;
@@ -343,97 +341,32 @@
         byName[name] = (byName[name] || 0) + r.n;
       });
 
-      var data = [];
-      Object.keys(byName).forEach(function (name) {
-        data.push({ name: name, value: byName[name] });
-      });
+      var top10 = Object.keys(byName)
+        .map(function (name) { return { name: name, value: byName[name] }; })
+        .sort(function (a, b) { return b.value - a.value; })
+        .slice(0, 10);
 
-      renderMap(data);
+      var el = document.getElementById('country-list');
+      if (!el) return;
+      if (!top10.length) { el.textContent = '—'; return; }
+
+      el.innerHTML = top10.map(function (d, i) {
+        return '<span style="color:#8C1515;font-weight:600;">' + (i + 1) + '.</span> '
+          + d.name
+          + ' <span style="color:#bbb;font-size:0.75rem;">(' + d.value.toLocaleString() + ')</span>';
+      }).join('<br>');
     });
   }
 
-  function renderMap(data) {
-    
-    var ec = document.createElement('script');
-    ec.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js';
-    ec.onload = function () {
-      fetch('https://cdn.jsdelivr.net/npm/echarts@4/map/json/world.json')
-        .then(function (r) { return r.json(); })
-        .then(function (geoJson) {
-          
-          
-          
-          var cnFeature = null, twFeature = null;
-          var features = [];
-          geoJson.features.forEach(function (f) {
-            var name = f.properties && f.properties.name;
-            if (name === 'China') { cnFeature = f; features.push(f); }
-            else if (name === 'Taiwan' || name === 'Taiwan, Province of China') { twFeature = f; }
-            else { features.push(f); }
-          });
-          if (cnFeature && twFeature) {
-            var cn = cnFeature.geometry, tw = twFeature.geometry;
-            var twCoords = tw.type === 'Polygon' ? [tw.coordinates] : tw.coordinates;
-            if (cn.type === 'Polygon') {
-              cnFeature.geometry = { type: 'MultiPolygon', coordinates: [cn.coordinates].concat(twCoords) };
-            } else {
-              cn.coordinates = cn.coordinates.concat(twCoords);
-            }
-          }
-          echarts.registerMap('world', { type: 'FeatureCollection', features: features });
-
-          var maxVal = data.reduce(function (m, d) { return Math.max(m, d.value); }, 1);
-          var chart  = echarts.init(document.getElementById('vmap'));
-
-          chart.setOption({
-            backgroundColor: 'transparent',
-            tooltip: {
-              trigger: 'item',
-              formatter: function (p) {
-                if (!p.value) return p.name;
-                return p.name + ': ' + p.value + ' visit' + (p.value !== 1 ? 's' : '');
-              }
-            },
-            visualMap: {
-              min: 1,
-              max: maxVal,
-              inRange: { color: ['#f5d0d0', '#8C1515'] },
-              show: false
-            },
-            series: [{
-              type: 'map',
-              map: 'world',
-              roam: false,
-              emphasis: {
-                itemStyle: { areaColor: '#c0392b' },
-                label: { show: false }
-              },
-              itemStyle: {
-                areaColor: '#e8e8e8',
-                borderColor: '#fff',
-                borderWidth: 0.5
-              },
-              label: { show: false },
-              data: data
-            }]
-          });
-
-          window.addEventListener('resize', function () { chart.resize(); });
-        });
-    };
-    document.head.appendChild(ec);
-  }
-
-  
-  var mapEl = document.getElementById('vmap-section');
-  if (mapEl) {
+  var originsEl = document.getElementById('vmap-section');
+  if (originsEl) {
     if ('IntersectionObserver' in window) {
       var obs = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) { loadMap(); obs.disconnect(); }
+        if (entries[0].isIntersecting) { loadCountries(); obs.disconnect(); }
       }, { rootMargin: '200px' });
-      obs.observe(mapEl);
+      obs.observe(originsEl);
     } else {
-      loadMap();
+      loadCountries();
     }
   }
 
