@@ -285,7 +285,8 @@
     gcGet('/api/v0/stats/hits'),
   ]).then(function (res) {
     var values = res.map(function (data) {
-      return (data && data.total != null) ? data.total : null;
+      if (!data) return null;
+      return data.total != null ? data.total : 0;
     });
     renderCounts(values);
     saveCache(CACHE_COUNTS, values);
