@@ -209,196 +209,70 @@
   </div>
 </div>
 
-
-<div id="vmap-section" style="margin-top:28px;padding-top:20px;text-align:center;width:100%;">
+<div id="origins-section" style="margin-top:28px;padding-top:20px;text-align:center;width:100%;">
   <div style="font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:10px;font-family:sans-serif;">Visitor Origins</div>
   <div id="country-list" style="font-size:0.82rem;color:#666;line-height:2;font-family:sans-serif;">—</div>
 </div>
 
 <script>
 (function () {
-  var now  = new Date();
-  var p    = function (n) { return String(n).padStart(2, '0'); };
-  var ns   = 'feng-robot-www';
-  var base = 'https://api.counterapi.dev/v1/' + ns + '/';
+  var GC  = 'https://feng.goatcounter.com';
+  var now = new Date();
+  var p   = function (n) { return String(n).padStart(2, '0'); };
+  function dateStr(d) { return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
 
-  
-  
-  var ISO = 'AF:Afghanistan,AL:Albania,DZ:Algeria,AO:Angola,AR:Argentina,AU:Australia,AT:Austria,AZ:Azerbaijan,BD:Bangladesh,BY:Belarus,BE:Belgium,BO:Bolivia,BA:Bosnia and Herzegovina,BR:Brazil,BG:Bulgaria,KH:Cambodia,CM:Cameroon,CA:Canada,CL:Chile,CN:China,CO:Colombia,CD:Dem. Rep. Congo,CR:Costa Rica,HR:Croatia,CU:Cuba,CZ:Czech Republic,DK:Denmark,DO:Dominican Rep.,EC:Ecuador,EG:Egypt,ET:Ethiopia,FI:Finland,FR:France,DE:Germany,GH:Ghana,GR:Greece,GT:Guatemala,HU:Hungary,IN:India,ID:Indonesia,IR:Iran,IQ:Iraq,IE:Ireland,IL:Israel,IT:Italy,JP:Japan,JO:Jordan,KZ:Kazakhstan,KE:Kenya,KP:North Korea,KR:South Korea,KW:Kuwait,LA:Laos,LB:Lebanon,LY:Libya,MY:Malaysia,MX:Mexico,MN:Mongolia,MA:Morocco,MM:Myanmar,NP:Nepal,NL:Netherlands,NZ:New Zealand,NG:Nigeria,NO:Norway,OM:Oman,PK:Pakistan,PA:Panama,PY:Paraguay,PE:Peru,PH:Philippines,PL:Poland,PT:Portugal,QA:Qatar,RO:Romania,RU:Russia,SA:Saudi Arabia,SN:Senegal,RS:Serbia,SG:Singapore,ZA:South Africa,SS:South Sudan,ES:Spain,LK:Sri Lanka,SD:Sudan,SE:Sweden,CH:Switzerland,SY:Syria,TW:China,TH:Thailand,TN:Tunisia,TR:Turkey,UG:Uganda,UA:Ukraine,AE:United Arab Emirates,GB:United Kingdom,US:United States,UY:Uruguay,UZ:Uzbekistan,VE:Venezuela,VN:Vietnam,YE:Yemen,ZM:Zambia,ZW:Zimbabwe'
-    .split(',').reduce(function (a, s) {
-      var i = s.indexOf(':'); a[s.slice(0, i)] = s.slice(i + 1); return a;
-    }, {});
+  var today    = dateStr(now);
+  var d30      = new Date(now); d30.setDate(d30.getDate() - 30);
+  var d365     = new Date(now); d365.setFullYear(d365.getFullYear() - 1);
 
-  var ALL_CODES = Object.keys(ISO);
-
-  function dateStr(d) {
-    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
-  }
-  function weekStart(d) {
-    var day = d.getDay(), diff = (day === 0) ? -6 : 1 - day, m = new Date(d);
-    m.setDate(d.getDate() + diff);
-    return m;
-  }
-  function djb2(str) {
-    var h = 5381;
-    for (var i = 0; i < str.length; i++) h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0;
-    return h.toString(36);
-  }
-
-  function get(key) {
-    return fetch(base + key)
+  function gcGet(path, token) {
+    var opts = token ? { headers: { 'Authorization': 'Bearer ' + token } } : {};
+    return fetch(GC + path, opts)
       .then(function (r) { return r.json(); })
-      .then(function (d) { return d.count || 0; })
-      .catch(function () { return 0; });
-  }
-  function up(key) {
-    return fetch(base + key + '/up')
-      .then(function (r) { return r.json(); })
-      .then(function (d) { return d.count || 0; })
-      .catch(function () { return 0; });
-  }
-
-  function fetchIP() {
-    var ctrl = window.AbortController ? new AbortController() : null;
-    var tid  = ctrl ? setTimeout(function () { ctrl.abort(); }, 3000) : null;
-    return fetch('https://api64.ipify.org?format=json', ctrl ? { signal: ctrl.signal } : {})
-      .then(function (r) { if (tid) clearTimeout(tid); return r.json(); })
-      .then(function (d) { return d.ip || null; })
       .catch(function () { return null; });
   }
 
   
-  function fetchCountry() {
-    return fetch('https://ipapi.co/country/')
-      .then(function (r) { return r.text(); })
-      .then(function (t) { var c = t.trim().toUpperCase(); return c.length === 2 ? c : null; })
-      .catch(function () { return null; });
-  }
-
-  
-  var todayStr = dateStr(now);
-  var todayKey = 'day-'  + todayStr;
-  var weekKey  = 'week-' + dateStr(weekStart(now));
-  var lsKey    = 'fenglab-' + todayStr;
-
-  function historyPromises() {
-    var dp = [], wp = [];
-    for (var i = 1; i < 30; i++) {
-      var d = new Date(now); d.setDate(d.getDate() - i);
-      dp.push(get('day-' + dateStr(d)));
-    }
-    for (var j = 1; j < 52; j++) {
-      var w = new Date(now); w.setDate(w.getDate() - j * 7);
-      wp.push(get('week-' + dateStr(weekStart(w))));
-    }
-    return [dp, wp];
-  }
-
-  function render(todayCount, weekCount, dayHist, weekHist) {
-    var el;
-    el = document.getElementById('vc-day');
-    if (el) el.textContent = todayCount.toLocaleString();
-    var monthTotal = todayCount + dayHist.reduce(function (s, n) { return s + n; }, 0);
-    el = document.getElementById('vc-month');
-    if (el) el.textContent = monthTotal.toLocaleString();
-    var yearTotal = weekCount + weekHist.reduce(function (s, n) { return s + n; }, 0);
-    el = document.getElementById('vc-year');
-    if (el) el.textContent = yearTotal.toLocaleString();
-  }
-
-  function countAndDisplay() {
-    Promise.all([up(todayKey), up(weekKey)]).then(function (u) {
-      var h = historyPromises();
-      Promise.all([Promise.all(h[0]), Promise.all(h[1])]).then(function (hist) {
-        render(u[0], u[1], hist[0], hist[1]);
-      });
-    }).catch(function () {});
-  }
-
-  function readAndDisplay() {
-    Promise.all([get(todayKey), get(weekKey)]).then(function (g) {
-      var h = historyPromises();
-      Promise.all([Promise.all(h[0]), Promise.all(h[1])]).then(function (hist) {
-        render(g[0], g[1], hist[0], hist[1]);
-      });
-    }).catch(function () {});
-  }
-
-  
-  var countriesInited = false;
-
-  function loadCountries() {
-    if (countriesInited) return;
-    countriesInited = true;
-
-    Promise.all(ALL_CODES.map(function (code) {
-      return get('geo-' + code).then(function (n) { return { code: code, n: n }; });
-    })).then(function (results) {
-      var byName = {};
-      results.forEach(function (r) {
-        if (!r.n) return;
-        var name = ISO[r.code];
-        byName[name] = (byName[name] || 0) + r.n;
-      });
-
-      var top10 = Object.keys(byName)
-        .map(function (name) { return { name: name, value: byName[name] }; })
-        .sort(function (a, b) { return b.value - a.value; })
-        .slice(0, 10);
-
-      var el = document.getElementById('country-list');
-      if (!el) return;
-      if (!top10.length) { el.textContent = '—'; return; }
-
-      el.innerHTML = top10.map(function (d, i) {
-        return '<span style="color:#8C1515;font-weight:600;">' + (i + 1) + '.</span> '
-          + d.name
-          + ' <span style="color:#bbb;font-size:0.75rem;">(' + d.value.toLocaleString() + ')</span>';
-      }).join('<br>');
-    });
-  }
-
-  var originsEl = document.getElementById('vmap-section');
-  if (originsEl) {
-    if ('IntersectionObserver' in window) {
-      var obs = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) { loadCountries(); obs.disconnect(); }
-      }, { rootMargin: '200px' });
-      obs.observe(originsEl);
-    } else {
-      loadCountries();
-    }
-  }
-
-  
-  if (localStorage.getItem(lsKey)) {
-    readAndDisplay();
-    return;
-  }
-
-  fetchIP().then(function (ip) {
-    if (!ip) {
-      localStorage.setItem(lsKey, '1');
-      countAndDisplay();
-      return;
-    }
-    var ipKey = 'uv-' + todayStr + '-' + djb2(ip + todayStr);
-    up(ipKey).then(function (c) {
-      localStorage.setItem(lsKey, '1');
-      if (c === 1) {
-        countAndDisplay();
-        
-        fetchCountry().then(function (code) {
-          if (code && ISO[code]) up('geo-' + code);
-        });
-      } else {
-        readAndDisplay();
-      }
-    }).catch(function () {
-      localStorage.setItem(lsKey, '1');
-      countAndDisplay();
+  Promise.all([
+    gcGet('/api/v0/stats/hits?start=' + today    + '&end=' + today),
+    gcGet('/api/v0/stats/hits?start=' + dateStr(d30)  + '&end=' + today),
+    gcGet('/api/v0/stats/hits?start=' + dateStr(d365) + '&end=' + today),
+  ]).then(function (res) {
+    var ids = ['vc-day', 'vc-month', 'vc-year'];
+    res.forEach(function (data, i) {
+      var el = document.getElementById(ids[i]);
+      if (el) el.textContent = (data && data.total != null) ? data.total.toLocaleString() : '—';
     });
   });
+
+  
+  var GC_TOKEN = '3y2rs63ptbwu1ipn6gg3xg9yxf99sy2j1ct5s1yexbyve6c0e9';
+
+  var originsEl = document.getElementById('origins-section');
+  if (!originsEl || !GC_TOKEN) return;
+
+  function loadCountries() {
+    gcGet('/api/v0/stats/countries?start=' + dateStr(d365) + '&end=' + today, GC_TOKEN)
+      .then(function (data) {
+        var el = document.getElementById('country-list');
+        if (!el) return;
+        if (!data || !data.stats || !data.stats.length) { el.textContent = '—'; return; }
+        el.innerHTML = data.stats.slice(0, 10).map(function (d, i) {
+          return '<span style="color:#8C1515;font-weight:600;">' + (i + 1) + '.</span> '
+            + d.name
+            + ' <span style="color:#bbb;font-size:0.75rem;">(' + d.count.toLocaleString() + ')</span>';
+        }).join('<br>');
+      });
+  }
+
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { loadCountries(); obs.disconnect(); }
+    }, { rootMargin: '200px' });
+    obs.observe(originsEl);
+  } else {
+    loadCountries();
+  }
 })();
 </script>
 
@@ -455,7 +329,9 @@
 
   
 
-  
+  <script data-goatcounter="https://feng.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
 
   
 
