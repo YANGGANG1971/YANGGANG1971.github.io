@@ -223,9 +223,15 @@
   var GC       = 'https://feng.goatcounter.com';
   var GC_TOKEN = '3y2rs63ptbwu1ipn6gg3xg9yxf99sy2j1ct5s1yexbyve6c0e9';
 
-  var now   = new Date();
-  var p     = function (n) { return String(n).padStart(2, '0'); };
-  var today = now.getFullYear() + '-' + p(now.getMonth() + 1) + '-' + p(now.getDate());
+  var now = new Date();
+  var p   = function (n) { return String(n).padStart(2, '0'); };
+  function dateStr(d) { return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+
+  var today    = dateStr(now);
+  var tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+  var end      = dateStr(tomorrow);   
+  var d30      = new Date(now); d30.setDate(d30.getDate() - 30);
+  var d365     = new Date(now); d365.setFullYear(d365.getFullYear() - 1);
 
   function gcGet(path) {
     return fetch(GC + path, { headers: { 'Authorization': 'Bearer ' + GC_TOKEN } })
@@ -235,9 +241,9 @@
 
   
   Promise.all([
-    gcGet('/api/v0/stats/hits?start=day'),
-    gcGet('/api/v0/stats/hits?start=month'),
-    gcGet('/api/v0/stats/hits?start=year'),
+    gcGet('/api/v0/stats/hits?start=' + today         + '&end=' + end),
+    gcGet('/api/v0/stats/hits?start=' + dateStr(d30)  + '&end=' + end),
+    gcGet('/api/v0/stats/hits?start=' + dateStr(d365) + '&end=' + end),
     gcGet('/api/v0/stats/hits'),
   ]).then(function (res) {
     ['vc-day', 'vc-month', 'vc-year', 'vc-total'].forEach(function (id, i) {
