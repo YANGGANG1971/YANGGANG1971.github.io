@@ -239,30 +239,63 @@
       .catch(function () { return null; });
   }
 
+  var CACHE_COUNTS    = 'gc_counts';
+  var CACHE_COUNTRIES = 'gc_countries';
+
+  function saveCache(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+  function loadCache(key) {
+    try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+  }
+
+  function renderCounts(values) {
+    ['vc-day', 'vc-month', 'vc-year', 'vc-total'].forEach(function (id, i) {
+      var el = document.getElementById(id);
+      if (el && values[i] != null) el.textContent = values[i].toLocaleString();
+    });
+  }
+
+  function renderCountries(stats) {
+    var el = document.getElementById('country-list');
+    if (!el || !stats || !stats.length) return;
+    el.innerHTML = stats.map(function (d, i) {
+      return '<span style="display:inline-block;width:1.4em;color:#8C1515;font-weight:700;">' + (i + 1) + '.</span>'
+        + '<span style="font-size:0.95rem;color:#444;">' + d.name + '</span>'
+        + '&nbsp;<span style="color:#bbb;font-size:0.8rem;">(' + d.count.toLocaleString() + ')</span>';
+    }).join('<br>');
+  }
+
   
+  var cachedCounts = loadCache(CACHE_COUNTS);
+  if (cachedCounts) renderCounts(cachedCounts);
+
   Promise.all([
     gcGet('/api/v0/stats/hits?start=' + today         + '&end=' + end),
     gcGet('/api/v0/stats/hits?start=' + dateStr(d30)  + '&end=' + end),
     gcGet('/api/v0/stats/hits?start=' + dateStr(d365) + '&end=' + end),
     gcGet('/api/v0/stats/hits'),
   ]).then(function (res) {
-    ['vc-day', 'vc-month', 'vc-year', 'vc-total'].forEach(function (id, i) {
-      var el   = document.getElementById(id);
-      var data = res[i];
-      if (el) el.textContent = (data && data.total != null) ? data.total.toLocaleString() : '—';
+    var values = res.map(function (data) {
+      return (data && data.total != null) ? data.total : null;
     });
+    renderCounts(values);
+    saveCache(CACHE_COUNTS, values);
   });
 
   
   var originsEl = document.getElementById('origins-section');
   if (!originsEl) return;
 
+  var cachedCountries = loadCache(CACHE_COUNTRIES);
+  if (cachedCountries) renderCountries(cachedCountries);
+
   function loadCountries() {
-    gcGet('/api/v0/stats/locations?start=2020-01-01&end=' + today)
+    gcGet('/api/v0/stats/locations?start=2020-01-01&end=' + end)
       .then(function (data) {
         var el = document.getElementById('country-list');
         if (!el) return;
-        if (!data || !data.stats || !data.stats.length) { el.textContent = '—'; return; }
+        if (!data || !data.stats || !data.stats.length) return;
 
         var merged = {};
         data.stats.forEach(function (d) {
@@ -276,11 +309,8 @@
           .sort(function (a, b) { return b.count - a.count; })
           .slice(0, 10);
 
-        el.innerHTML = top10.map(function (d, i) {
-          return '<span style="display:inline-block;width:1.4em;color:#8C1515;font-weight:700;">' + (i + 1) + '.</span>'
-            + '<span style="font-size:0.95rem;color:#444;">' + d.name + '</span>'
-            + '&nbsp;<span style="color:#bbb;font-size:0.8rem;">(' + d.count.toLocaleString() + ')</span>';
-        }).join('<br>');
+        renderCountries(top10);
+        saveCache(CACHE_COUNTRIES, top10);
       });
   }
 
