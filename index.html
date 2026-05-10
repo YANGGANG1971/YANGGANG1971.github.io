@@ -200,29 +200,29 @@
   </div>
 
   <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(140,21,21,0.18);text-align:center;width:100%;">
-  <div style="font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase;color:#333;font-weight:700;margin-bottom:14px;font-family:sans-serif;">Visitor Statistics Since May 10, 2026</div>
+  <div style="font-size:1.25rem;letter-spacing:1.5px;text-transform:uppercase;color:#333;font-weight:700;margin-bottom:14px;font-family:sans-serif;">Visitor Statistics Since May 10, 2026</div>
   <div style="display:inline-flex;gap:40px;flex-wrap:wrap;justify-content:center;">
     <div style="text-align:center;">
-      <div id="vc-day" style="font-size:1.9rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
-      <div style="font-size:0.78rem;color:#333;margin-top:5px;letter-spacing:0.5px;font-weight:700;">TODAY</div>
+      <div id="vc-day" style="font-size:3.0rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
+      <div style="font-size:1.25rem;color:#333;margin-top:5px;letter-spacing:0.5px;font-weight:700;">TODAY</div>
     </div>
     <div style="text-align:center;">
-      <div id="vc-month" style="font-size:1.9rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
-      <div style="font-size:0.78rem;color:#333;margin-top:5px;letter-spacing:0.5px;font-weight:700;">LAST 30 DAYS</div>
+      <div id="vc-month" style="font-size:3.0rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
+      <div style="font-size:1.25rem;color:#333;margin-top:5px;letter-spacing:0.5px;font-weight:700;">LAST 30 DAYS</div>
     </div>
     <div style="text-align:center;">
-      <div id="vc-year" style="font-size:1.9rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
-      <div style="font-size:0.78rem;color:#333;margin-top:5px;letter-spacing:0.5px;font-weight:700;">LAST 365 DAYS</div>
+      <div id="vc-year" style="font-size:3.0rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
+      <div style="font-size:1.25rem;color:#333;margin-top:5px;letter-spacing:0.5px;font-weight:700;">LAST 365 DAYS</div>
     </div>
     <div style="text-align:center;">
-      <div id="vc-total" style="font-size:1.9rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
-      <div style="font-size:0.78rem;color:#333;margin-top:5px;letter-spacing:0.5px;font-weight:700;">TOTAL</div>
+      <div id="vc-total" style="font-size:3.0rem;font-weight:700;color:#8C1515;font-family:'Georgia',serif;line-height:1;">—</div>
+      <div style="font-size:1.25rem;color:#333;margin-top:5px;letter-spacing:0.5px;font-weight:700;">TOTAL</div>
     </div>
   </div>
 </div>
 
 <div id="origins-section" style="margin-top:28px;padding-top:20px;text-align:center;width:100%;">
-  <div style="font-size:0.78rem;letter-spacing:1.5px;text-transform:uppercase;color:#333;font-weight:700;margin-bottom:14px;font-family:sans-serif;">Visitor Origins Since May 10, 2026</div>
+  <div style="font-size:1.25rem;letter-spacing:1.5px;text-transform:uppercase;color:#333;font-weight:700;margin-bottom:14px;font-family:sans-serif;">Visitor Origins Since May 10, 2026</div>
   <div id="country-list" style="max-width:420px;margin:0 auto;text-align:left;font-family:sans-serif;">—</div>
 </div>
 
@@ -257,10 +257,17 @@
     try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
   }
 
+  function fmt(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    return String(n);
+  }
+
   function renderCounts(values) {
     ['vc-day', 'vc-month', 'vc-year', 'vc-total'].forEach(function (id, i) {
       var el = document.getElementById(id);
-      if (el && values[i] != null) el.textContent = values[i].toLocaleString();
+      if (el && values[i] != null) el.textContent = fmt(values[i]);
     });
   }
 
@@ -271,13 +278,13 @@
     el.innerHTML = stats.map(function (d, i) {
       var pct = Math.round(d.count / max * 100);
       return '<div style="display:flex;align-items:center;margin-bottom:7px;">'
-        + '<div style="min-width:148px;font-size:0.85rem;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+        + '<div style="min-width:148px;font-size:1.3rem;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
         + '<span style="color:#8C1515;font-weight:700;margin-right:4px;">' + (i + 1) + '.</span><strong>' + d.name + '</strong>'
         + '</div>'
         + '<div style="flex:1;background:#f0f0f0;border-radius:3px;height:11px;margin:0 10px;overflow:hidden;">'
         + '<div style="width:' + pct + '%;background:#8C1515;opacity:0.75;border-radius:3px;height:100%;"></div>'
         + '</div>'
-        + '<div style="min-width:28px;text-align:right;font-size:0.78rem;color:#333;font-weight:700;">' + d.count + '</div>'
+        + '<div style="min-width:28px;text-align:right;font-size:1.25rem;color:#333;font-weight:700;">' + fmt(d.count) + '</div>'
         + '</div>';
     }).join('');
   }
