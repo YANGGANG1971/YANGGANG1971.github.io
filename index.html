@@ -297,7 +297,7 @@
     gcGet('/api/v0/stats/hits?start=' + today         + '&end=' + end),
     gcGet('/api/v0/stats/hits?start=' + dateStr(d30)  + '&end=' + end),
     gcGet('/api/v0/stats/hits?start=' + dateStr(d365) + '&end=' + end),
-    gcGet('/api/v0/stats/hits'),
+    gcGet('/api/v0/stats/hits?start=2020-01-01&end=' + end),
   ]).then(function (res) {
     var values = res.map(function (data) {
       if (!data) return null;
