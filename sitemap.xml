@@ -2,28 +2,28 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://YANGGANG1971.github.io/</loc>
+    <loc>http://localhost:1313/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/home-pre/</loc>
+    <loc>http://localhost:1313/home-pre/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/home/</loc>
+    <loc>http://localhost:1313/home/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/join-us/</loc>
+    <loc>http://localhost:1313/join-us/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/news/</loc>
+    <loc>http://localhost:1313/news/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/open-source/</loc>
+    <loc>http://localhost:1313/open-source/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/people/</loc>
+    <loc>http://localhost:1313/people/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/publications/</loc>
+    <loc>http://localhost:1313/publications/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/talks/</loc>
+    <loc>http://localhost:1313/talks/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/yanggang-feng/</loc>
+    <loc>http://localhost:1313/yanggang-feng/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/categories/</loc>
+    <loc>http://localhost:1313/categories/</loc>
   </url><url>
-    <loc>https://YANGGANG1971.github.io/tags/</loc>
+    <loc>http://localhost:1313/tags/</loc>
   </url>
 </urlset>
